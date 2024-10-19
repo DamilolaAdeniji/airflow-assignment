@@ -1,0 +1,7 @@
+pandas==2.2.2
+apache-airflow[celery]==2.8.0 --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.8.0/constraints-3.9.txt"
+python-dotenv==0.19.2
+pyodbc==5.1.0
+requests==2.26.0
+DateTime==5.0
+azure-storage-blob==12.20.0
