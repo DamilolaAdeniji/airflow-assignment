@@ -41,7 +41,7 @@ def create_query(df,table_name,filename):
 
 def execute_query(query):
     try:
-        # Connect to your PostgreSQL database
+        # Connecting to PostgreSQL database
         conn = psycopg2.connect(
             dbname=str(os.environ['PG_DATABASE']),
             user=str(os.environ['PG_USERNAME']),
