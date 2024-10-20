@@ -8,11 +8,12 @@ import subprocess
 from dotenv import load_dotenv
 from functions.file_reader import file_read_engine
 from functions.utils import remove_file_if_exists,load_txt_to_dataframe
+from functions import pgsql
 load_dotenv()
 
 
 default_args = {
-    'start_date': datetime(2024, 10, 19),
+    'start_date': datetime(2024, 10, 19),  # Adjust to your schedule
     'retries': 1,
 }
 
@@ -21,15 +22,21 @@ def download_extract_data():
 
 
 def file_remover():
-    remove_file_if_exists('data_files/output_file.txt')
+    remove_file_if_exists('dags/data_files/output_file.txt')
 
 
 def read_data():
-    file_read_engine(100000,'data_files/pageviews-20241006-230000.txt',output_file='data_files/output_file.txt')
+    file_read_engine(100000,'dags/data_files/pageviews-20241006-230000.txt',output_file='dags/data_files/output_file.txt')
 
 
 def txt_to_query():
-    df = load_txt_to_dataframe('data_files/output_file.txt')
+    df = load_txt_to_dataframe('dags/data_files/output_file.txt')
+    pgsql.create_query(df,'pageviews_data','insert_data.sql')
+
+
+def load_data_to_db():
+    with open('dags/sql_files/insert_data.sql','r') as q:
+        pgsql.execute_query(q)
 
 
 with DAG(
@@ -58,5 +65,11 @@ with DAG(
         task_id = "load_txt_to_query",
         python_callable = txt_to_query
     )
+
+    load_to_db = PythonOperator(
+        task_id = "load_to_db",
+        python_callable = load_data_to_db
+    )
+
    
-download_extract_data >> delete_output_file_if_exists >> read_transform_data >> load_txt_to_query
+download_extract_data >> delete_output_file_if_exists >> read_transform_data >> load_txt_to_query >> load_to_db
